@@ -101,7 +101,7 @@ int main(int argc, char **argv)
   angle_target=Rot2eul(rot_target);
   //angle_target << 0,0,0;
   double KP = 1500000;//1500000;700000
-  double KD = 80000;//800000;400000
+  double KD = 69000;//800000;400000
   // 关节速度限制
   Eigen::VectorXd up_vel_limit(DOF);
   up_vel_limit << 1.71,1.71,1.75,2.27,2.24,3.14,3.14;
