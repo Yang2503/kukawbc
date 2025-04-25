@@ -1,0 +1,393 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "webots://projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.28374993285982403 0.30681843277391185 0.9084868875840784 0.8859136328743505
+  position -2.8030432847134605 -3.558555349265096 2.222681891550109
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 100 100
+}
+DEF ball Solid {
+  translation 0.2 -0.2 1
+  rotation 0 1 0 1.5708
+  children [
+    DEF BALL_SHAPE Shape {
+      appearance PBRAppearance {
+        baseColor 1 0.54 0.08
+        roughness 0.3
+        metalness 0
+      }
+      geometry Sphere {
+        radius 0.05
+        subdivision 4
+      }
+    }
+  ]
+  name "ball"
+  model "ball"
+}
+Robot {
+  children [
+    Robot {
+      children [
+        DEF base_link_visual CadShape {
+          url [
+            "/home/user/kukawbc/meshes/base_link.DAE"
+          ]
+        }
+        HingeJoint {
+          jointParameters HingeJointParameters {
+            axis 0 0 -1
+            anchor 0 0 0.3375
+          }
+          device [
+            RotationalMotor {
+              name "joint1"
+              maxVelocity 1.71
+              minPosition -2.97
+              maxPosition 2.97
+              maxTorque 176
+            }
+            PositionSensor {
+              name "joint1_sensor"
+            }
+          ]
+          endPoint Solid {
+            translation 0 0 0.3375
+            rotation 0 0 -1 0
+            children [
+              DEF link1_visual CadShape {
+                url [
+                  "/home/user/kukawbc/meshes/link1.DAE"
+                ]
+              }
+              HingeJoint {
+                jointParameters HingeJointParameters {
+                  axis 0 1 -4e-06
+                }
+                device [
+                  RotationalMotor {
+                    name "joint2"
+                    maxVelocity 1.71
+                    minPosition -2.09
+                    maxPosition 2.09
+                    maxTorque 176
+                  }
+                  PositionSensor {
+                    name "joint2_sensor"
+                  }
+                ]
+                endPoint Solid {
+                  rotation -1 5.1264013984149865e-17 0 1.5707999999999998
+                  children [
+                    DEF link2_visual CadShape {
+                      url [
+                        "/home/user/kukawbc/meshes/link2.DAE"
+                      ]
+                    }
+                    HingeJoint {
+                      jointParameters HingeJointParameters {
+                        axis 0 1 4e-06
+                        anchor 0 -0.3993 0
+                      }
+                      device [
+                        RotationalMotor {
+                          name "joint3"
+                          maxVelocity 1.75
+                          minPosition -2.97
+                          maxPosition 2.97
+                          maxTorque 110
+                        }
+                        PositionSensor {
+                          name "joint3_sensor"
+                        }
+                      ]
+                      endPoint Solid {
+                        translation 0 -0.3993 0
+                        rotation 1 4.797163178425886e-17 3.9252239376397585e-17 1.5708
+                        children [
+                          DEF link3_visual CadShape {
+                            url [
+                              "/home/user/kukawbc/meshes/link3.DAE"
+                            ]
+                          }
+                          HingeJoint {
+                            jointParameters HingeJointParameters {
+                              axis 0 -1 4e-06
+                            }
+                            device [
+                              RotationalMotor {
+                                name "joint4"
+                                maxVelocity 2.27
+                                minPosition -2.09
+                                maxPosition 2.09
+                                maxTorque 110
+                              }
+                              PositionSensor {
+                                name "joint4_sensor"
+                              }
+                            ]
+                            endPoint Solid {
+                              rotation -1 1.0762771656953169e-16 7.850447875279517e-17 1.5708
+                              children [
+                                DEF link4_visual CadShape {
+                                  url [
+                                    "/home/user/kukawbc/meshes/link4.DAE"
+                                  ]
+                                }
+                                HingeJoint {
+                                  jointParameters HingeJointParameters {
+                                    axis 0 1 4e-06
+                                    anchor 0 -0.3993 0
+                                  }
+                                  device [
+                                    RotationalMotor {
+                                      name "joint5"
+                                      maxVelocity 2.44
+                                      minPosition -2.97
+                                      maxPosition 2.97
+                                      maxTorque 110
+                                    }
+                                    PositionSensor {
+                                      name "joint5_sensor"
+                                    }
+                                  ]
+                                  endPoint Solid {
+                                    translation 0 -0.3993 0
+                                    rotation 1 -6.871432842645925e-17 7.850447875279517e-17 1.5707999999999998
+                                    children [
+                                      DEF link5_visual CadShape {
+                                        url [
+                                          "/home/user/kukawbc/meshes/link5.DAE"
+                                        ]
+                                      }
+                                      HingeJoint {
+                                        jointParameters HingeJointParameters {
+                                          axis 0 1 -4e-06
+                                        }
+                                        device [
+                                          RotationalMotor {
+                                            name "joint6"
+                                            maxVelocity 3.14
+                                            minPosition -2.09
+                                            maxPosition 2.09
+                                            maxTorque 40
+                                          }
+                                          PositionSensor {
+                                            name "joint6_sensor"
+                                          }
+                                        ]
+                                        endPoint Solid {
+                                          rotation -1 7.89330214968414e-17 -7.850447875279518e-17 1.5707999999999998
+                                          children [
+                                            DEF link6_visual CadShape {
+                                              url [
+                                                "/home/user/kukawbc/meshes/link6.DAE"
+                                              ]
+                                            }
+                                            HingeJoint {
+                                              jointParameters HingeJointParameters {
+                                                axis 0 -1 -4e-06
+                                                anchor 0 -0.126 0
+                                              }
+                                              device [
+                                                RotationalMotor {
+                                                  name "joint7"
+                                                  maxVelocity 3.14
+                                                  minPosition -3.05
+                                                  maxPosition 3.05
+                                                  maxTorque 40
+                                                }
+                                                PositionSensor {
+                                                  name "joint7_sensor"
+                                                }
+                                              ]
+                                              endPoint Solid {
+                                                translation 0 -0.126 0
+                                                rotation 1 -1.0235927616098314e-16 1.1775671812919276e-16 1.5707999999999995
+                                                children [
+                                                  DEF link7_visual CadShape {
+                                                    url [
+                                                      "/home/user/kukawbc/meshes/link7.DAE"
+                                                    ]
+                                                  }
+                                                ]
+                                                name "link7"
+                                                boundingObject DEF link7 Mesh {
+                                                  url [
+                                                    "/home/user/kukawbc/meshes/link7.STL"
+                                                  ]
+                                                }
+                                                physics Physics {
+                                                  density -1
+                                                  mass 2.47157
+                                                  centerOfMass [
+                                                    1e-06 0 -0.027493
+                                                  ]
+                                                  inertiaMatrix [
+                                                    0.001773659 0.001773287 0.002727487
+                                                    -1.241052e-07 -2.95409e-08 -1.575676e-08
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          ]
+                                          name "link6"
+                                          boundingObject DEF link6 Mesh {
+                                            url [
+                                              "/home/user/kukawbc/meshes/link6.STL"
+                                            ]
+                                          }
+                                          physics Physics {
+                                            density -1
+                                            mass 14.20076
+                                            centerOfMass [
+                                              3e-06 -0.000588 0.000349
+                                            ]
+                                            inertiaMatrix [
+                                              0.03845158 0.02800109 0.03681248
+                                              -6.702795e-08 2.191732e-06 -0.001922497
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    ]
+                                    name "link5"
+                                    boundingObject DEF link5 Mesh {
+                                      url [
+                                        "/home/user/kukawbc/meshes/link5.STL"
+                                      ]
+                                    }
+                                    physics Physics {
+                                      density -1
+                                      mass 9.53467
+                                      centerOfMass [
+                                        0 -0.029822 -0.116234
+                                      ]
+                                      inertiaMatrix [
+                                        0.0529039 0.04449427 0.02399168
+                                        6.862749e-08 3.57472e-07 0.01749141
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                              name "link4"
+                              boundingObject DEF link4 Mesh {
+                                url [
+                                  "/home/user/kukawbc/meshes/link4.STL"
+                                ]
+                              }
+                              physics Physics {
+                                density -1
+                                mass 25.140329
+                                centerOfMass [
+                                  0 -0.086946 -0.029291
+                                ]
+                                inertiaMatrix [
+                                  0.1976308 0.06027231 0.1875569
+                                  -3.908289e-07 -3.245643e-07 0.03671956
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                        name "link3"
+                        boundingObject DEF link3 Mesh {
+                          url [
+                            "/home/user/kukawbc/meshes/link3.STL"
+                          ]
+                        }
+                        physics Physics {
+                          density -1
+                          mass 21.162787
+                          centerOfMass [
+                            1e-06 0.034319 -0.069202
+                          ]
+                          inertiaMatrix [
+                            0.1333224 0.1272138 0.04715575
+                            -2.723879e-07 -2.315796e-07 -0.02367104
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                  name "link2"
+                  boundingObject DEF link2 Mesh {
+                    url [
+                      "/home/user/kukawbc/meshes/link2.STL"
+                    ]
+                  }
+                  physics Physics {
+                    density -1
+                    mass 25.140315
+                    centerOfMass [
+                      -1e-06 -0.086946 0.028791
+                    ]
+                    inertiaMatrix [
+                      0.1976312 0.06027206 0.1875573
+                      9.507085e-08 -3.519638e-07 -0.03671967
+                    ]
+                  }
+                }
+              }
+            ]
+            name "link1"
+            boundingObject DEF link1 Mesh {
+              url [
+                "/home/user/kukawbc/meshes/link1.STL"
+              ]
+            }
+            physics Physics {
+              density -1
+              mass 21.162741
+              centerOfMass [
+                0 -0.034819 -0.069202
+              ]
+              inertiaMatrix [
+                0.1333216 0.1272138 0.04715532
+                -5.383032e-07 9.169895e-07 0.02367049
+              ]
+            }
+          }
+        }
+      ]
+      name "LbrIiwa7R800"
+      boundingObject DEF base_link Mesh {
+        url [
+          "/home/user/kukawbc/meshes/base_link.STL"
+        ]
+      }
+      physics Physics {
+        density -1
+        mass 30.276352
+        centerOfMass [
+          -0.012857 1e-06 0.067966
+        ]
+        inertiaMatrix [
+          0.1112396 0.1390171 0.1330286
+          -3.810974e-07 0.004866598 7.878715e-07
+        ]
+      }
+      controller "<extern>"
+    }
+  ]
+}
+Robot {
+  name "robot(1)"
+  recognitionColors [
+    0 0 0
+  ]
+  controller "ball_controller"
+  supervisor TRUE
+}

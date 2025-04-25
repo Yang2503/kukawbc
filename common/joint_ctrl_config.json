@@ -1,0 +1,65 @@
+{
+   "joint1" : {
+      "kd" : 1.2,
+      "kp" : 3,
+      "maxPos" : 2.97,
+      "maxSpeed" : 1.71,
+      "maxTorque" : 176.0,
+      "minPos" : -2.97,
+      "maxAcc": 1e6
+   },
+   "joint2" : {
+      "kd" : 1.2,
+      "kp" : 4.57,
+      "maxPos" : 2.09,
+      "maxSpeed" : 1.71,
+      "maxTorque" : 176.0,
+      "minPos" : -2.09,
+      "maxAcc": 1e6
+   },
+   "joint3" : {
+      "kd" : 0.72,
+      "kp" : 2,
+      "maxPos" : 2.97,
+      "maxSpeed" : 1.75,
+      "maxTorque" : 110.0,
+      "minPos" : -2.97,
+      "maxAcc": 1e6
+   },
+   "joint4" : {
+      "kd" : 0.56,
+      "kp" : 2.85,
+      "maxPos" : 2.09,
+      "maxSpeed" : 2.27,
+      "maxTorque" : 110.0,
+      "minPos" : -2.09,
+      "maxAcc": 1e6
+   },
+   "joint5" : {
+      "kd" : 0.57,
+      "kp" : 2,
+      "maxPos" : 2.97,
+      "maxSpeed" : 2.24,
+      "maxTorque" : 110.0,
+      "minPos" : -2.97,
+      "maxAcc": 1e6
+   },
+   "joint6" : {
+      "kd" : 0.15,
+      "kp" : 1,
+      "maxPos" : 2.09,
+      "maxSpeed" : 3.14,
+      "maxTorque" : 40.0,
+      "minPos" : -2.09,
+      "maxAcc": 1e6
+   },
+   "joint7" : {
+      "kd" : 0.15,
+      "kp" : 0.7,
+      "maxPos" : 3.05,
+      "maxSpeed" : 3.14,
+      "maxTorque" : 40.0,
+      "minPos" : -3.05,
+      "maxAcc": 1e6
+   }
+}
