@@ -16,10 +16,12 @@ Pin_KinDyn::Pin_KinDyn(std::string urdf_pathIn) {
     
     J_h=Eigen::MatrixXd::Zero(6,model_nv); // 初始化左手雅可比矩阵为零矩阵  
     dJ_h=Eigen::MatrixXd::Zero(6,model_nv);
+    J5_h=Eigen::MatrixXd::Zero(6,model_nv); // 初始化左手雅可比矩阵为零矩阵  
+    dJ5_h=Eigen::MatrixXd::Zero(6,model_nv);
     
-    q.setZero();
-    dq.setZero();
-    ddq.setZero();
+    q=Eigen::VectorXd::Zero(model_nv);
+    dq=Eigen::VectorXd::Zero(model_nv);
+    ddq=Eigen::VectorXd::Zero(model_nv);
     Rcur.setIdentity();
     dyn_M=Eigen::MatrixXd::Zero(model_nv,model_nv);
     dyn_M_inv=Eigen::MatrixXd::Zero(model_nv,model_nv);
@@ -28,6 +30,8 @@ Pin_KinDyn::Pin_KinDyn(std::string urdf_pathIn) {
 
     // get joint index for Pinocchio Lib, need to redefined the joint name for new model   
     hand=model_biped_fixed.getJointId("joint7");
+    small_ball=model_biped_fixed.getJointId("jointball");
+    hand5=model_biped_fixed.getJointId("joint7");
 
     // 读取关节的 PVT（位置、速度、时间）参数
     Json::Reader reader;
@@ -58,27 +62,35 @@ void Pin_KinDyn::dataBusRead(const DataBus &robotState) {
     //  https://github.com/stack-of-tasks/pinocchio/issues/1137
     //  q = [global_base_position, global_base_quaternion, joint_positions]
     //  v = [local_base_velocity_linear, local_base_velocity_angular, joint_velocities]
-    q=robotState.q;
-    dq=robotState.dq;
-    ddq=robotState.ddq;
+    q.block(0,0,7,1)=robotState.q;
+    dq.block(0,0,7,1)=robotState.dq;
+    ddq.block(0,0,7,1)=robotState.ddq;
     base_pos=robotState.base_pos;
 }
 
 void Pin_KinDyn::dataBusWrite(DataBus &robotState) {
-    robotState.J_h=J_h;
-    robotState.dJ_h=dJ_h;
+    robotState.J_h=J_h.block(0,0,6,7);
+    robotState.dJ_h=dJ_h.block(0,0,6,7);
     robotState.hd_pos_L=hd_pos;/////?
     robotState.hd_rot_L=hd_rot;/////?
     robotState.hd_pos_W=hd_pos+base_pos;
     robotState.hd_rot_W=hd_rot;
-    robotState.dyn_M=dyn_M;
-    robotState.dyn_M_inv=dyn_M_inv;
-    robotState.dyn_C=dyn_C;
-    robotState.dyn_G=dyn_G;
-    robotState.dyn_Ag=dyn_Ag;// 将质心动量矩阵写入数据总线
-    robotState.dyn_dAg=dyn_dAg;// 将质心动量矩阵的导数写入数据总线
-    robotState.dyn_Non=dyn_Non;
-    robotState.inertia = inertia;  // w.r.t body frame,将惯性矩阵（相对于机体坐标系）写入数据总线
+    robotState.dyn_M=dyn_M.block(0,0,7,7);
+    //robotState.dyn_M_inv=dyn_M_inv.block(0,0,6,7);
+    //robotState.dyn_C=dyn_C.block(0,0,7,1);
+    //robotState.dyn_G=dyn_G;
+    //robotState.dyn_Ag=dyn_Ag;// 将质心动量矩阵写入数据总线
+    //robotState.dyn_dAg=dyn_dAg;// 将质心动量矩阵的导数写入数据总线
+    robotState.dyn_Non=dyn_Non.block(0,0,7,1);
+    //robotState.inertia = inertia;  // w.r.t body frame,将惯性矩阵（相对于机体坐标系）写入数据总线
+
+    robotState.J5_h=J5_h.block(0,0,3,7);
+    robotState.dJ5_h=dJ5_h.block(0,0,3,7);
+    //robotState.J6_h=J6_h.block(0,0,3,7);
+    //robotState.dJ6_h=dJ6_h.block(0,0,3,7);
+    robotState.small_pos=small_pos;
+    robotState.link5_posW=link5_posW;
+    
 }
 
 // update jacobians and joint positions
@@ -91,6 +103,11 @@ void Pin_KinDyn::computeJ_dJ() {
     pinocchio::getJointJacobianTimeVariation(model_biped_fixed,data_biped_fixed,hand,pinocchio::LOCAL_WORLD_ALIGNED,dJ_h);
     hd_pos=data_biped_fixed.oMi[hand].translation();
     hd_rot=data_biped_fixed.oMi[hand].rotation();
+    pinocchio::getJointJacobian(model_biped_fixed,data_biped_fixed,hand5,pinocchio::LOCAL_WORLD_ALIGNED,J5_h);
+    pinocchio::getJointJacobianTimeVariation(model_biped_fixed,data_biped_fixed,hand5,pinocchio::LOCAL_WORLD_ALIGNED,dJ5_h);
+    //pinocchio::getJointJacobian(model_biped_fixed,data_biped_fixed,6,pinocchio::LOCAL_WORLD_ALIGNED,J6_h);
+    //pinocchio::getJointJacobianTimeVariation(model_biped_fixed,data_biped_fixed,6,pinocchio::LOCAL_WORLD_ALIGNED,dJ6_h);
+    small_pos=data_biped_fixed.oMi[small_ball].translation();    
 
 
 }
@@ -156,6 +173,12 @@ void Pin_KinDyn::computeDyn() {
     // cal I
     pinocchio::ccrba(model_biped_fixed, data_biped_fixed, q, dq);
     inertia = data_biped_fixed.Ig.inertia().matrix();//提取质心处的惯性张量矩阵 
+    pinocchio::centerOfMass(model_biped_fixed, data_biped_fixed, q); 
+    link5_trans = data_biped_fixed.oMi[hand5].translation();
+    link5_rot = data_biped_fixed.oMi[hand5].rotation();
+    link5_posL=model_biped_fixed.inertias[hand5].lever();
+    // 将连杆质心相对于连杆坐标系的位置变换到世界坐标系
+    link5_posW = link5_trans+link5_rot*link5_posL;
         
 //    std::cout<<"CoM_W"<<std::endl;
 //    std::cout<<CoM_pos.transpose()<<std::endl;

@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   // 运动学和动力学求解器，使用 URDF 文件初始化
   Pin_KinDyn kinDynSolver(urdf_path); 
   // 数据总线，用于在不同模块间传递数据
-  DataBus RobotState(kinDynSolver.model_nv); 
+  DataBus RobotState(kinDynSolver.model_nv-1); 
   // get the time step of the current world.
   int timeStep = (int)robot->getBasicTimeStep();
   int time_iter = 0;
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
                 -1,0,0;*/
   
   //angle_target << 0,0,0;
-  double KP = 20;//20.20+xianfu2,15
+  double KP = 20;//20.20/25+xianfu2,15
   double KD = 25;//10.5+xainfu2,15
   // 关节速度限制
   Eigen::VectorXd up_vel_limit(DOF);
@@ -131,9 +131,12 @@ int main(int argc, char **argv)
   
   bool init = false;
   Eigen::VectorXd pre_pos(DOF);
+  Eigen::Vector3d e_old;
+  e_old.setZero();
   pre_pos.setZero();
   Eigen::VectorXd pre_vec(DOF);
   pre_vec.setZero();
+  double d_safe=0.07;
   //bool isFirstIteration = true;
   // Main loop:
   while (robot->step(timeStep) != -1)
@@ -205,6 +208,19 @@ int main(int argc, char **argv)
     kinDynSolver.computeDyn();
     // 将计算结果写入数据总线
     kinDynSolver.dataBusWrite(RobotState);
+
+    Eigen::Vector3d diff=RobotState.small_pos-RobotState.link5_posW;
+    double d=sqrt(diff.dot(diff));
+    double d_t=d-d_safe;
+    double etad_1=2;//1.2;
+    double etad_2=0.5;//0.3;
+    Eigen::Vector3d e=diff/d;    
+    Eigen::Vector3d dote=(e-e_old)/(double(timeStep) / 1000);
+    e_old=e;
+    Eigen::MatrixXd J_d=-e.transpose()*RobotState.J5_h;
+    Eigen::MatrixXd dJ_d=-e.transpose()*RobotState.dJ5_h-dote.transpose()*RobotState.J5_h;
+
+    int num_d=1;
     
     // calc real position and velocity
     Eigen::VectorXd pos_real(DOF);
@@ -222,15 +238,15 @@ int main(int argc, char **argv)
 
     auto Jac = RobotState.J_h;
     auto dJac = RobotState.dJ_h;
-    int num_var =  DOF + 6;
+    int num_var =  DOF + 6+num_d;
     int num_output = 6; // 平面问题，速度只有3个变量
 
 
     // Hess
     Eigen::MatrixXd Hess = Eigen::MatrixXd(num_var, num_var);
-    Hess.block(0, 0, DOF, DOF).diagonal() << 20,20,20,20,10,10,1;//20,20,20,20,10,10,1;//
-    Hess.block(DOF, DOF, num_output, num_output).diagonal() << 1e4,1e4,1e4,1e4,1e4,1e4;//1e6,1e6,1e6,1e6,1e6,1e6;//1e5,1e5,1e5,1e5,1e5,1e5;//1e4,1e4,1e4,1e4,1e4,1e4;
-
+    Hess.block(0, 0, DOF, DOF).diagonal() << 1e6,1e6,1e6,1e6,1e3,1e3,1e3;//5e3,5e3,5e3,5e3,5e3,5e3,5e3;//20,20,20,20,10,10,1;
+    Hess.block(DOF, DOF, num_output, num_output).diagonal() << 1e6,1e6,1e6,1e6,1e6,1e6;//1e6,1e6,1e6,1e6,1e6,1e6;//1e5,1e5,1e5,1e5,1e5,1e5;//1e4,1e4,1e4,1e4,1e4,1e4;
+    Hess.block(DOF+num_output, DOF+num_output, num_d,num_d).diagonal() << 2e3;//2e3;//1e4,3e4;
 
 
     //grad
@@ -242,11 +258,11 @@ int main(int argc, char **argv)
     Eigen::VectorXd lbx(num_var);
     Eigen::VectorXd ubx(num_var);
     lbx.head(DOF) = low_acc_limit;
-    lbx.segment(DOF, num_output) << -1e6, -1e6, -1e6,-1e6, -1e6, -1e6;
+    lbx.segment(DOF, num_output+num_d) << -1e6, -1e6, -1e6,-1e6, -1e6, -1e6,-1e10;
     ubx.head(DOF) = up_acc_limit;
-    ubx.segment(DOF, num_output) << 1e6, 1e6, 1e6,1e6, 1e6, 1e6;
+    ubx.segment(DOF, num_output+num_d) << 1e6, 1e6, 1e6,1e6, 1e6, 1e6,1e10;
     //根据关节位置处理加速度限制
-    /*for (int i = 0; i < DOF; ++i) {
+    for (int i = 0; i < DOF; ++i) {
       double temp_up = up_pos_limit(i) - pos_real(i);
       ubx(i) = temp_up > threshold ? up_acc_limit(i)
                                    : (temp_up / threshold) * up_acc_limit(i);
@@ -259,19 +275,21 @@ int main(int argc, char **argv)
       if (temp_low < 0) {
         lbx(i) = 0.0;
       }
-    }*/
+    }
 
 
     // CST and lbc ubc
-    Eigen::MatrixXd Cst = Eigen::MatrixXd(num_output , num_var);
+    Eigen::MatrixXd Cst = Eigen::MatrixXd(num_output+num_d , num_var);
     Cst.setZero();
     Cst.block(0, 0, num_output, DOF) = Jac;
     Cst.block(0, DOF, num_output, num_output).setIdentity();
+    Cst.block(num_output, 0, num_d,DOF) = -J_d;
+    Cst.block(num_output, DOF+num_output, num_d,num_d).setIdentity();
 
     double EPS = 1e-6;
 
-    Eigen::VectorXd lbc(num_output);
-    Eigen::VectorXd ubc(num_output);
+    Eigen::VectorXd lbc(num_output+num_d);
+    Eigen::VectorXd ubc(num_output+num_d);
 
     Eigen::VectorXd vec_real_end(num_output);
     Eigen::VectorXd dJdq(num_output);
@@ -310,12 +328,14 @@ int main(int argc, char **argv)
     }
     // vec_target << 0,1,0;
     lbc.head(num_output) = (acc_target-dJdq).array() - EPS;
+    lbc.segment(num_output,num_d) << -1e20;
     ubc.head(num_output) = (acc_target-dJdq).array() + EPS;
+    ubc.segment(num_output,num_d) << ((etad_1*J_d+dJ_d)*vec_real).array() + etad_2*d_t;
 
     Eigen::VectorXd res(num_var);
     res.setZero();
 
-    qpOASES::QProblem qp(num_var, num_output );
+    qpOASES::QProblem qp(num_var, num_output+num_d);
     qpOASES::Options options;
     // options.setToReliable();
     options.setToMPC();
@@ -340,8 +360,12 @@ int main(int argc, char **argv)
     std::cout << "real error end pos = [" << error_end.transpose() << "];" << std::endl;
     std::cout << "des end pos = [" << des_target.transpose() << "];" << std::endl;
     std::cout << "target end velocity screw = [" << acc_target.transpose() << "];"  << std::endl;
-    std::cout << "dJ*dq = [" << dJdq.transpose() << "];"  << std::endl;
-    std::cout << "vec_real_end = [" << vec_real_end.transpose() << "];"  << std::endl;
+    //std::cout << "dJ*dq = [" << dJdq.transpose() << "];"  << std::endl;
+    //std::cout << "vec_real_end = [" << vec_real_end.transpose() << "];"  << std::endl;
+
+    std::cout << "delta error pos = [" << diff.transpose() << "];" << std::endl;
+    std::cout << "d = [" << d << "];" << std::endl;
+    std::cout << "d_t = [" << d_t << "];" << std::endl;
     //std::cout << "dyn_M = [" << RobotState.dyn_M << "];"  << std::endl;
     //std::cout << "dyn_C = [" << RobotState.dyn_C << "];"  << std::endl;
     //std::cout << "dyn_G = [" << RobotState.dyn_G.transpose() << "];"  << std::endl;

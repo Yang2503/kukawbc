@@ -7,8 +7,8 @@ EXTERNPROTO "webots://projects/objects/floors/protos/RectangleArena.proto"
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.28374993285982403 0.30681843277391185 0.9084868875840784 0.8859136328743505
-  position -2.8030432847134605 -3.558555349265096 2.222681891550109
+  orientation -0.29042226438849095 0.3339860779846407 0.8967208083120961 0.8104848894165452
+  position -2.8115717664935165 -3.5489155743717116 2.221042420898788
 }
 TexturedBackground {
 }
@@ -44,6 +44,39 @@ Robot {
           url [
             "/home/user/kukawbc/meshes/base_link.DAE"
           ]
+        }
+        HingeJoint {
+          jointParameters HingeJointParameters {
+            axis 0 0 -1
+            anchor 0.2 0 1
+          }
+          device [
+            RotationalMotor {
+              name "jointball"
+              maxVelocity 0
+              maxTorque 0
+            }
+            PositionSensor {
+              name "jointball_sensor"
+            }
+          ]
+          endPoint Solid {
+            translation 0.2 0 1
+            rotation 0 0 -1 0
+            children [
+              Shape {
+                appearance Appearance {
+                  material Material {
+                    diffuseColor 0 1 0
+                  }
+                }
+                geometry Sphere {
+                  radius 0.01
+                }
+              }
+            ]
+            name "small_ball"
+          }
         }
         HingeJoint {
           jointParameters HingeJointParameters {
@@ -88,7 +121,7 @@ Robot {
                   }
                 ]
                 endPoint Solid {
-                  rotation -1 5.1264013984149865e-17 0 1.5707999999999998
+                  rotation -1 -2.0646267038019493e-17 -3.925223937639759e-17 1.5707999999999998
                   children [
                     DEF link2_visual CadShape {
                       url [
@@ -114,7 +147,7 @@ Robot {
                       ]
                       endPoint Solid {
                         translation 0 -0.3993 0
-                        rotation 1 4.797163178425886e-17 3.9252239376397585e-17 1.5708
+                        rotation 1 -4.621832371522806e-17 -7.850447875279516e-17 1.5708
                         children [
                           DEF link3_visual CadShape {
                             url [
@@ -138,7 +171,7 @@ Robot {
                               }
                             ]
                             endPoint Solid {
-                              rotation -1 1.0762771656953169e-16 7.850447875279517e-17 1.5708
+                              rotation -1 9.286889612590526e-18 7.850447875279517e-17 1.5707999999999998
                               children [
                                 DEF link4_visual CadShape {
                                   url [
@@ -164,7 +197,7 @@ Robot {
                                   ]
                                   endPoint Solid {
                                     translation 0 -0.3993 0
-                                    rotation 1 -6.871432842645925e-17 7.850447875279517e-17 1.5707999999999998
+                                    rotation 1 -3.2864222626411494e-17 3.9252239376397585e-17 1.5708
                                     children [
                                       DEF link5_visual CadShape {
                                         url [
@@ -188,7 +221,7 @@ Robot {
                                           }
                                         ]
                                         endPoint Solid {
-                                          rotation -1 7.89330214968414e-17 -7.850447875279518e-17 1.5707999999999998
+                                          rotation -1 -2.3335664740959392e-17 1.5700895750559036e-16 1.5707999999999995
                                           children [
                                             DEF link6_visual CadShape {
                                               url [
@@ -214,7 +247,7 @@ Robot {
                                               ]
                                               endPoint Solid {
                                                 translation 0 -0.126 0
-                                                rotation 1 -1.0235927616098314e-16 1.1775671812919276e-16 1.5707999999999995
+                                                rotation 1 -5.349136828470435e-11 5.349114621914332e-11 1.5707999999999995
                                                 children [
                                                   DEF link7_visual CadShape {
                                                     url [

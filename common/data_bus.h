@@ -32,9 +32,10 @@ struct DataBus{
     // states and key variables
     Eigen::VectorXd q, dq, ddq;
     Eigen::VectorXd qOld;
-    Eigen::MatrixXd J_h;
+    Eigen::MatrixXd J_h,J5_h,dJ5_h;
     Eigen::MatrixXd dJ_h;
-    Eigen::Vector3d base_pos;
+    Eigen::Vector3d base_pos,small_pos;
+    Eigen::Vector3d link5_posW;
     Eigen::Vector3d hd_pos_W; // in world frame
     Eigen::Matrix3d hd_rot_W;
     Eigen::Vector3d hd_pos_L; // in body frame

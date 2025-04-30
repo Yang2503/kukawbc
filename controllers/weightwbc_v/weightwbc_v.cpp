@@ -57,7 +57,7 @@ int main(int argc, char **argv)
   // 运动学和动力学求解器，使用 URDF 文件初始化
   Pin_KinDyn kinDynSolver(urdf_path); 
   // 数据总线，用于在不同模块间传递数据
-  DataBus RobotState(kinDynSolver.model_nv); 
+  DataBus RobotState(kinDynSolver.model_nv-1); 
   // get the time step of the current world.
   int timeStep = (int)robot->getBasicTimeStep();
   int time_iter = 0;
@@ -100,8 +100,8 @@ int main(int argc, char **argv)
                 -1,0,0;*/
   
   //angle_target << 0,0,0;
-  double KP = 2.4;
-  double KD = 0.7;
+  double KP = 2.4;//2.4;
+  double KD = 0.7;//0.7;
   // 关节速度限制
   Eigen::VectorXd up_vel_limit(DOF);
   up_vel_limit << 1.71,1.71,1.75,2.27,2.24,3.14,3.14;
@@ -118,6 +118,7 @@ int main(int argc, char **argv)
   bool init = false;
   Eigen::VectorXd pre_pos(DOF);
   pre_pos.setZero();
+  double d_safe=0.07;
   //bool isFirstIteration = true;
   // Main loop:
   while (robot->step(timeStep) != -1)
@@ -189,6 +190,16 @@ int main(int argc, char **argv)
     kinDynSolver.computeDyn();
     // 将计算结果写入数据总线
     kinDynSolver.dataBusWrite(RobotState);
+
+    
+    Eigen::Vector3d diff=RobotState.small_pos-RobotState.link5_posW;
+    double d=sqrt(diff.dot(diff));
+    double d_t=d-d_safe;
+    double etad=0.5;
+    Eigen::Vector3d e=diff/d;
+    Eigen::MatrixXd J_d=-e.transpose()*RobotState.J5_h;
+
+    int num_d=1;
     
     // calc real position and velocity
     Eigen::VectorXd pos_real(DOF);
@@ -201,15 +212,15 @@ int main(int argc, char **argv)
     std::cout << "vec_real= " << vec_real.transpose() << std::endl;
 
     auto Jac = RobotState.J_h;
-    int num_var =  DOF + 6;
+    int num_var =  DOF + 6 +num_d;
     int num_output = 6; // 平面问题，速度只有3个变量
 
 
     // Hess
     Eigen::MatrixXd Hess = Eigen::MatrixXd(num_var, num_var);
-    Hess.block(0, 0, DOF, DOF).diagonal() << 20,20,20,20,10,10,1;//5e3, 5e3, 5e2, 5e2, 5e2, 5e2,5e2;//20,20,20,20,10,10,1;//20
-    Hess.block(DOF, DOF, num_output, num_output).diagonal() << 1e4,1e4,1e4,1e4,1e4,1e4;//1e40,1e40, 1e40, 1e40, 1e40, 1e40;//1e35, 1e35, 1e35;
-
+    Hess.block(0, 0, DOF, DOF).diagonal() << 20,20,20,20,10,10,1;//20*pt1+10*pt2,20*pt1+10*pt2,20*pt1+10*pt2,10*pt1+10*pt2,10*pt1+10*pt2,10*pt1+10*pt2,1*pt1+1*pt2;//20,20,20,20,10,10,1;
+    Hess.block(DOF, DOF, num_output, num_output).diagonal() << 1e4,1e4,1e4,1e4,1e4,1e4;//5e4*pt1,5e4*pt1,5e4*pt1,5e4*pt1,5e4*pt1,5e4*pt1;
+    Hess.block(DOF+num_output, DOF+num_output, num_d,num_d).diagonal() << 2e3;//1e4,3e4;
 
 
     //grad
@@ -221,9 +232,9 @@ int main(int argc, char **argv)
     Eigen::VectorXd lbx(num_var);
     Eigen::VectorXd ubx(num_var);
     lbx.head(DOF) = low_vel_limit;
-    lbx.segment(DOF, num_output) << -1e6, -1e6, -1e6,-1e6, -1e6, -1e6;
+    lbx.segment(DOF, num_output+num_d) << -1e6, -1e6, -1e6,-1e6, -1e6, -1e6,-1e10;
     ubx.head(DOF) = up_vel_limit;
-    ubx.segment(DOF, num_output) << 1e6, 1e6, 1e6,1e6, 1e6, 1e6;
+    ubx.segment(DOF, num_output+num_d) << 1e6, 1e6, 1e6,1e6, 1e6, 1e6,1e10;
     // 根据关节位置处理速度限制
     for (int i = 0; i < DOF; ++i)
     {
@@ -243,15 +254,17 @@ int main(int argc, char **argv)
 
 
     // CST and lbc ubc
-    Eigen::MatrixXd Cst = Eigen::MatrixXd(num_output , num_var);
+    Eigen::MatrixXd Cst = Eigen::MatrixXd(num_output+num_d , num_var);
     Cst.setZero();
     Cst.block(0, 0, num_output, DOF) = Jac;
     Cst.block(0, DOF, num_output, num_output).setIdentity();
+    Cst.block(num_output, 0, num_d,DOF) = -J_d;
+    Cst.block(num_output, DOF+num_output, num_d,num_d).setIdentity();
 
     double EPS = 1e-6;
 
-    Eigen::VectorXd lbc(num_output);
-    Eigen::VectorXd ubc(num_output);
+    Eigen::VectorXd lbc(num_output+num_d);
+    Eigen::VectorXd ubc(num_output+num_d);
 
     Eigen::VectorXd vec_real_end(num_output);
     Eigen::VectorXd error_end(num_output);
@@ -282,12 +295,14 @@ int main(int argc, char **argv)
     }*/
     // vec_target << 0,1,0;
     lbc.head(num_output) = vec_target.array() - EPS;
+    lbc.segment(num_output,num_d) << -1e20;
     ubc.head(num_output) = vec_target.array() + EPS;
+    ubc.segment(num_output,num_d) << etad*d_t;
 
     Eigen::VectorXd res(num_var);
     res.setZero();
 
-    qpOASES::QProblem qp(num_var, num_output );
+    qpOASES::QProblem qp(num_var, num_output+num_d);
     qpOASES::Options options;
     // options.setToReliable();
     options.setToMPC();
@@ -308,7 +323,10 @@ int main(int argc, char **argv)
       qp.getPrimalSolution(res.data());
     }
 
-    
+    std::cout << "delta error pos = [" << diff.transpose() << "];" << std::endl;
+    std::cout << "d = [" << d << "];" << std::endl;
+    std::cout << "d_t = [" << d_t << "];" << std::endl;
+
     //std::cout << "real error end pos = [" << error_end.transpose() << "];" << std::endl;
     //std::cout << "des end pos = [" << des_target.transpose() << "];" << std::endl;
     std::cout << "target end velocity screw = [" << vec_target.transpose() << "];"  << std::endl;
@@ -324,10 +342,10 @@ int main(int argc, char **argv)
     std::cout << "ubc = [" << ubc.transpose() << "];" << std::endl;
     std::cout << "opt_value = [" << res.transpose() << "];" << std::endl;
     std::cout << "Cst * Opt = " << (Cst * res).transpose() << std::endl;
-    std::cout<<"Jacobian * dq =  [";
-    std::cout<<(Jac * res.head(DOF)).transpose()<<" ];"<<std::endl;
+    //std::cout<<"Jacobian * dq =  [";
+    //std::cout<<(Jac * res.head(DOF)).transpose()<<" ];"<<std::endl;
     
-    std::cout << "mt = " << std::sqrt((Jac * Jac.transpose()).determinant()) << std::endl;
+    //std::cout << "mt = " << std::sqrt((Jac * Jac.transpose()).determinant()) << std::endl;
 
     // 发布速度指令
     for (int i = 0; i < DOF; ++i)

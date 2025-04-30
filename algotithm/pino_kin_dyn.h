@@ -40,18 +40,19 @@ public:
     
     pinocchio::Model model_biped_fixed;// 固定状态下双足机器人的 Pinocchio 模型
     int model_nv;
-    pinocchio::JointIndex hand;
+    pinocchio::JointIndex hand,small_ball,hand5;
     Eigen::VectorXd q,dq,ddq;
     
     Eigen::Matrix3d Rcur;// 当前的旋转矩阵   
     Eigen::Quaternion<double> quatCur;// 当前的四元数
     
-    Eigen::Matrix<double,6,-1> J_h;//雅可比矩阵.雅可比矩阵导数
-    Eigen::Matrix<double,6,-1> dJ_h;   
+    Eigen::Matrix<double,6,-1> J_h,J6_h,J5_h;//雅可比矩阵.雅可比矩阵导数
+    Eigen::Matrix<double,6,-1> dJ_h,dJ5_h,dJ6_h;   
     Eigen::Vector3d base_pos;
-    Eigen::Vector3d hd_pos;  // hand position in world frame
+    Eigen::Vector3d hd_pos,small_pos;  // hand position in world frame
+    Eigen::Vector3d link5_trans,link5_posW,link5_posL;  // link position in world frame
     Eigen::Vector3d hd_pos_body; // hand position in body frame
-    Eigen::Matrix3d hd_rot;
+    Eigen::Matrix3d hd_rot,link5_rot;
     Eigen::Matrix3d hd_rot_body;
    
     Eigen::MatrixXd dyn_M, dyn_M_inv, dyn_C, dyn_G, dyn_Ag, dyn_dAg; // 动力学矩阵、动力学矩阵的逆、科里奥利力矩阵、重力矩阵、质心动量矩阵、质心动量矩阵的导数   

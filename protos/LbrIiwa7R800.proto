@@ -29,6 +29,51 @@ PROTO LbrIiwa7R800 [
       DEF base_link_visual CadShape {
         url "../meshes/base_link.DAE"
       }
+       HingeJoint {
+            jointParameters HingeJointParameters {
+              axis 0.000000 0.000000 -1.000000
+          	anchor 0.000000 0.000000 0.337500
+            }
+            device [
+            RotationalMotor {
+            name "jointball"
+            maxVelocity 0
+            minPosition 0
+            maxPosition 0
+            maxTorque 0
+          }
+          PositionSensor {
+            name "jointball_sensor"
+          }
+          ]
+            endPoint Solid {
+        name "small_ball"
+        translation 0.2 0 1
+        rotation 0 0 0 0
+        children [
+          Shape {
+            appearance Appearance {
+              material Material {
+                diffuseColor 0 1 0
+                transparency 0
+              }
+            }
+            geometry Sphere {
+              radius 0.01
+            }
+          }
+        ]
+        physics Physics {
+          density -1
+          mass 0.01
+          centerOfMass [ 0.000001 0.000000 0.000001 ]
+          inertiaMatrix [
+                                1.976308e-01 6.027231e-02 1.875569e-01
+                                -3.908289e-07 -3.245643e-07 3.671956e-02
+                              ]
+        }
+      }
+      }
       HingeJoint {
         jointParameters HingeJointParameters {
           axis 0.000000 0.000000 -1.000000
@@ -315,6 +360,6 @@ PROTO LbrIiwa7R800 [
         1.112396e-01 1.390171e-01 1.330286e-01
         -3.810974e-07 4.866598e-03 7.878715e-07
       ]
-    }
+    }	
   }
 }

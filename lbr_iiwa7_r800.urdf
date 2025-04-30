@@ -44,6 +44,46 @@
       </geometry>
     </collision>
   </link>
+  <link name="small_ball">
+    <inertial>
+        <origin xyz="0.2 0 1" rpy="0 0 0"/>
+        <mass value="0.01"/>
+        <inertia ixx="1.976308e-01" ixy="6.027231e-02" ixz="1.875569e-01" iyy="-3.908289e-07" iyz="-3.245643e-07" izz="3.671956e-02"/>
+    </inertial>
+    <visual>
+        <origin xyz="0.2 0 1" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="0.01"/>
+        </geometry>
+        <material name="">
+            <color rgba="0 1 0 1"/>
+        </material>
+    </visual>
+    <collision>
+        <origin xyz="0.2 0 1" rpy="0 0 0"/>
+        <geometry>
+            <sphere radius="0.01"/>
+        </geometry>
+    </collision>
+</link>
+<joint
+    name="jointball"
+    type="revolute">
+    <origin
+      xyz="0.2 0 1"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="small_ball" />
+    <axis
+      xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
   <link
     name="link1">
     <inertial>
